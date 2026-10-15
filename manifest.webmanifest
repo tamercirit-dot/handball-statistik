@@ -1,0 +1,1 @@
+{"name":"Handball Match Analytics","short_name":"Handball Stats","description":"Offline-Handballstatistik mit Excel-Export","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#f2f4f7","theme_color":"#af1831","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
