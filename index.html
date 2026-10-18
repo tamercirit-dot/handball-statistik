@@ -636,78 +636,70 @@ function exportSeasonAsPdf(){
   const games=$('gamesStats').innerHTML;
   const chosenGoalie=$('goalieSelect').options[$('goalieSelect').selectedIndex]?.textContent||'Alle Torhüter';
   const printed=new Date().toLocaleString('de-AT');
-  let styles=`
-    @page{size:A4 landscape;margin:10mm}
+  // Eigenständiges Drucklayout: keine vererbten Website-Mindestbreiten oder Sticky-Spalten.
+  // Die Farben, Trennlinien und Karten entsprechen der Online-Statistik.
+  const styles=`
+    @page{size:A4 landscape;margin:9mm}
     *{box-sizing:border-box}
-    body{font:12px system-ui,Arial,sans-serif;color:#203044;margin:0;background:#fff}
-    h1{font-size:21px;color:#aa1830;margin:0 0 4px}h2{font-size:15px;margin:18px 0 9px;border-bottom:2px solid #dbe3eb;padding-bottom:5px;break-after:avoid}
-    .meta{color:#637486;margin-bottom:12px;font-size:11px}
-    .actions{display:flex;gap:10px;align-items:center;margin-bottom:16px}
-    .actions button{background:#aa1830;color:white;border:0;border-radius:6px;padding:10px 15px;font-weight:700}
-    .hint{font-size:10px;color:#637486} .row{display:flex;gap:8px;flex-wrap:wrap}
-    .stat{background:#eef2f5;border-radius:6px;padding:8px 12px;flex:1;min-width:110px}
-    .stat small{display:block;color:#637486}.stat b{display:block;font-size:17px}
-    table{width:100%;border-collapse:collapse;font-size:9px;table-layout:fixed}
-    th,td{padding:5px 3px;border-bottom:1px solid #dfe5eb;text-align:center;word-break:break-word}
-    th{background:#f1f4f7}thead{display:table-header-group}
-    tr{break-inside:avoid}
-    .playername{text-align:left;font-weight:700;min-width:110px;width:19%}
-    .player-meta{display:flex;align-items:center;gap:4px}
-    .player-no{background:#eaf0f6;border-radius:10px;padding:3px 5px;min-width:22px;text-align:center}
-    .player-label small{display:none}
-    .statgroup-tor{background:#e7eef6}.statgroup-pos{background:#dff2e3}.statgroup-neg{background:#ffebe4}
-    .stats-rate{display:inline-block;padding:2px 2px;border-radius:5px;font-weight:800;white-space:nowrap}
-    .rate-green{background:#d8f4de;color:#0d6231}.rate-orange{background:#fff0c9;color:#9a5b00}.rate-red{background:#ffdddd;color:#9a2222}.rate-none{color:#8495a4}
-    svg{display:block;width:330px;max-width:100%;height:auto;margin:10px auto}
+    html,body{margin:0;padding:0;background:white;color:#1a2735;font:11px system-ui,-apple-system,Segoe UI,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h1{font-size:21px;color:#aa1830;margin:0 0 5px;font-weight:800}
+    h2{font-size:16px;margin:14px 0 8px;color:#203044;font-weight:800;break-after:avoid}
+    .meta{color:#667788;margin:0 0 13px;font-size:11px}
+    .actions{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+    .actions button{background:#aa1830;color:white;border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .hint{color:#586a7b;font-size:10px;line-height:1.45;margin:7px 0}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .row .stat{flex:1;min-width:0}
+    .stat{padding:10px 12px;background:#f1f4f7;border:1px solid #dce2e8;border-radius:10px}
+    .stat small{display:block;color:#687889;font-size:10px;margin-bottom:2px}
+    .stat b{display:block;font-size:17px;color:#203044}
+    .report-section{break-inside:avoid}
+    /* Exakt wie die weiße Tabellenansicht der Website: keine farbigen Kopfzellen */
+    .stats-table-wrap{width:100%;max-width:100%;overflow:hidden;border:1px solid #d9e2ea;border-radius:14px;background:#fff}
+    .grouped-stats-v41{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;border-spacing:0!important;font-size:10px;line-height:1.2;font-variant-numeric:tabular-nums;background:white}
+    .grouped-stats-v41 col:first-child{width:19%!important}
+    .grouped-stats-v41 col:not(:first-child){width:6.230769%!important}
+    .grouped-stats-v41 th,.grouped-stats-v41 td{min-width:0!important;width:auto!important;box-shadow:none!important;padding:10px 4px!important;white-space:nowrap;text-align:center;vertical-align:middle;border:0!important;border-bottom:1px solid #e1e7ed!important;background:#fff!important;color:#203044!important}
+    .grouped-stats-v41 .playername{position:static!important;min-width:0!important;width:auto!important;left:auto!important;z-index:auto!important;padding:10px 10px!important;text-align:left!important;background:#f4f7fa!important;border-right:2px solid #cbd5df!important;box-shadow:none!important}
+    .grouped-stats-v41 thead .playername{background:#fff!important}
+    .grouped-stats-v41 .stats-groups th{font-size:15px!important;font-weight:800!important;line-height:1.2;padding:13px 4px!important;background:#fff!important;color:#203044!important;border-bottom:2px solid #cdd8e2!important}
+    .grouped-stats-v41 .stats-subheads th{font-size:10px!important;font-weight:800!important;background:#fff!important;color:#203044!important;padding:10px 3px!important}
+    /* Ausschließlich Gruppenlinien: nach % und nach BL */
+    .grouped-stats-v41 .stats-subheads th:nth-child(3),.grouped-stats-v41 tbody td:nth-child(4){border-right:2px solid #c0cbd5!important}
+    .grouped-stats-v41 .stats-subheads th:nth-child(9),.grouped-stats-v41 tbody td:nth-child(10){border-right:2px solid #c0cbd5!important}
+    .grouped-stats-v41 .player-meta{display:flex;align-items:center;gap:8px;white-space:nowrap}
+    .grouped-stats-v41 .player-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;width:25px;height:25px;background:#fff!important;color:#17324d!important;border:1px solid #d7e0e9;border-radius:50%;font-weight:800;font-size:10px;padding:0 3px}
+    .grouped-stats-v41 .player-label{display:flex;flex-direction:column;gap:2px;font-size:11px;font-weight:800;line-height:1.2}
+    .grouped-stats-v41 .player-label small{display:none!important}
+    .grouped-stats-v41 .stats-rate{font-size:10px!important;padding:4px 6px!important;display:inline-block;border-radius:8px;font-weight:800;white-space:nowrap}
+    .rate-green{background:#dcf5e3!important;color:#12653a!important}.rate-orange{background:#fff0c9!important;color:#855100!important}.rate-red{background:#ffe1e1!important;color:#a52834!important}.rate-none{background:#e4e9ee!important;color:#657384!important}
+    table{width:100%;border-collapse:collapse;font-size:10px}
+    .standard-table th,.standard-table td{padding:6px;border-bottom:1px solid #e0e7ed;text-align:center}
+    .standard-table th{background:#f2f5f8;color:#26394b;font-weight:800}
+    table thead{display:table-header-group}tr{break-inside:avoid}
     .keeper-section{break-before:page}
-    .keeper-row{display:grid;grid-template-columns:42% 58%;gap:12px;align-items:start}
-    .keeper-row svg{width:100%;max-width:350px}.keeper-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}.keeper-board-card{border:1px solid #d8e2ea;border-radius:10px;padding:8px;background:#fff}.keeper-board-title{text-align:center;font-size:13px;font-weight:800;margin-bottom:6px}.keeper-board-summary{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px}.keeper-mini-stat{border:1px solid #d8e2ea;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:700}.keeper-board-svg{width:100%;max-width:260px;height:auto;margin:0 auto}
+    .keeper-board-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
+    .keeper-board-card{border:1px solid #dce4ea;border-radius:10px;padding:9px;background:#fff;break-inside:avoid}
+    .keeper-board-title{text-align:center;font-size:13px;font-weight:800;color:#203044;margin:0 0 5px}
+    .keeper-board-svg{width:100%;max-width:100%!important;height:auto;display:block;margin:0 auto}
+    .keeper-board-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin:7px 0 0}
+    .keeper-mini-stat{background:#f5f7fa;border:1px solid #e1e7ed;border-radius:7px;padding:5px 2px;font-size:9px;font-weight:800;color:#314759;text-align:center;white-space:nowrap}
+    .compact-summary{margin-top:9px}
+    .compact-summary .stat{padding:7px}
+    .compact-summary .stat b{font-size:14px}
+    .bottom-tables{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;margin-top:10px}
+    .bottom-tables h2{font-size:13px;margin-top:6px}
+    .games-section{margin-top:10px}
     .no-print{display:block}
-    @media print{.no-print{display:none!important};body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
-  `;
-  styles += `
-    .grouped-stats-v41 th,.grouped-stats-v41 td,.grouped-stats-v41 .statgroup-tor,.grouped-stats-v41 .statgroup-pos,.grouped-stats-v41 .statgroup-neg{background:#fff!important;color:#203044}
-    .grouped-stats-v41 td:nth-child(4),.grouped-stats-v41 td:nth-child(10){border-right:1.5px solid #aebcc9}
-    .grouped-stats-v41 .player-no{background:#fff!important;border:1px solid #d3dce5}
-  `;
-  const markup=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Handball-Statistik – ${esc(filterLabel)}</title><style>${styles}/* v48: klarere Trennung Spielerstatistik */
-.grouped-stats-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid #d9e2ea;border-radius:14px;background:#fff}
-.grouped-stats-v41{width:100%;min-width:1120px;table-layout:fixed;border-collapse:separate;border-spacing:0;background:#fff}
-.grouped-stats-v41 th,.grouped-stats-v41 td{padding:12px 6px;text-align:center;vertical-align:middle;font-variant-numeric:tabular-nums;border-bottom:1px solid #e4ebf2;background:#fff}
-.grouped-stats-v41 .playername{position:sticky;left:0;z-index:2;width:19%;min-width:180px;padding:10px 12px;text-align:left;background:#f4f7fa;box-shadow:2px 0 0 #cfd8e3}
-.grouped-stats-v41 thead .playername{z-index:5;background:#eef3f7}
-.grouped-stats-v41 tbody .playername{border-right:2px solid #d6dee7}
-.grouped-stats-v41 .stats-groups th{font-size:17px;line-height:1.2;padding:14px 6px;font-weight:800;border-bottom:0}
-.grouped-stats-v41 .statgroup-tor{background:#a9c8e9;color:#18354d;border:2px solid #7ea7d5;border-bottom:0}
-.grouped-stats-v41 .statgroup-pos{background:#b4e5a1;color:#20462c;border:2px solid #8cc97b;border-bottom:0}
-.grouped-stats-v41 .statgroup-neg{background:#f7b18f;color:#63321c;border:2px solid #e39b79;border-bottom:0}
-.grouped-stats-v41 .stats-subheads th{font-size:12px;white-space:nowrap;padding:11px 4px;font-weight:800;background:#fff;color:#23374d}
-.grouped-stats-v41 .stats-subheads th:nth-child(n+2):nth-child(-n+4){background:#eef5fd}
-.grouped-stats-v41 .stats-subheads th:nth-child(n+5):nth-child(-n+10){background:#eff8eb}
-.grouped-stats-v41 .stats-subheads th:nth-child(n+11):nth-child(-n+14){background:#fff1ea}
-.grouped-stats-v41 tbody td:not(.playername),.grouped-stats-v41 tbody tr:nth-child(even) td:not(.playername),.grouped-stats-v41 tbody tr:hover td:not(.playername){background:#fff}
-.grouped-stats-v41 th:nth-child(2),.grouped-stats-v41 td:nth-child(2){border-left:3px solid #7ea7d5}
-.grouped-stats-v41 th:nth-child(4),.grouped-stats-v41 td:nth-child(4){border-right:3px solid #7ea7d5}
-.grouped-stats-v41 th:nth-child(5),.grouped-stats-v41 td:nth-child(5){border-left:3px solid #8cc97b}
-.grouped-stats-v41 th:nth-child(10),.grouped-stats-v41 td:nth-child(10){border-right:3px solid #8cc97b}
-.grouped-stats-v41 th:nth-child(11),.grouped-stats-v41 td:nth-child(11){border-left:3px solid #e39b79}
-.grouped-stats-v41 th:nth-child(14),.grouped-stats-v41 td:nth-child(14){border-right:3px solid #e39b79}
-.grouped-stats-v41 .quote-cell{width:auto}
-.grouped-stats-v41 .stats-rate{font-size:11px;padding:4px 8px;display:inline-block}
-.grouped-stats-v41 .player-meta{gap:10px;white-space:nowrap}
-.grouped-stats-v41 .player-no{min-width:26px;width:30px;height:27px;padding:0 4px;background:#e8eef5;color:#17324d;border-radius:999px;font-weight:800}
-.grouped-stats-v41 .player-label{font-size:13px;line-height:1.25}
-.grouped-stats-v41 .player-label small{font-size:11px;color:#6b7c8d;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
-.grouped-stats-v41 td:nth-child(11){background:#fff!important}
-</style></head><body>
-    <div class="actions no-print"><button onclick="window.print()">Drucken / als PDF speichern</button><span>Im Druckdialog „Als PDF sichern“ wählen. Am iPad: Teilen → Drucken → PDF teilen/sichern.</span></div>
+    @media print{.no-print{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+  `; const markup=`<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Handball-Statistik – ${esc(filterLabel)}</title><style>${styles}</style></head><body>
+    <div class="actions no-print"><button onclick="window.print()">Drucken / als PDF speichern</button><span>Im Druckdialog „Als PDF speichern“ auswählen. Am iPad: Teilen → Drucken → als PDF sichern.</span></div>
     <h1>ALPLA HC Hard · Handball-Statistik</h1><div class="meta">Auswahl: <strong>${esc(filterLabel)}</strong> · Erstellt: ${esc(printed)}</div>
-    <h2>Saisonübersicht</h2>${totals}
-    <h2>Spielerstatistik</h2>${stats}
-    <p class="hint">W = Würfe · FW = Fehlwürfe · BG = Ballgewinn · STP = Stoppfoul · STF = Stürmerfoul · BL = Block · TF = technischer Fehler · RK = rote Karte. Torhüter separat.</p>
-    <section class="keeper-section"><h2>Torhüter-Wurfbild · ${esc(chosenGoalie)}</h2>${goalieBoards}<div style="margin-top:10px">${goalieTotals}</div><div style="margin-top:14px"><h2>Gegnerische Wurfposition</h2>${goaliePositions}</div></section>
-    <h2>Wurfverteilung Feldspieler</h2>${shots}
-    <h2>Spiele im Überblick</h2>${games}
+    <section class="report-section"><h2>Saisonübersicht</h2>${totals}</section>
+    <section class="report-section"><h2>Spielerstatistik</h2><div class="stats-table-wrap">${stats}</div><p class="hint">W = Würfe · BG = Ballgewinn · STP = Stoppfoul · STF = Stürmerfoul · BL = Block · TF = Technischer Fehler · RK = Rote Karte.</p></section>
+    <section class="keeper-section"><h2>Torhüter-Wurfbild · ${esc(chosenGoalie)}</h2>${goalieBoards}<div class="compact-summary">${goalieTotals}</div>
+      <div class="bottom-tables"><div><h2>Gegnerische Wurfposition</h2><div class="standard-table">${goaliePositions}</div></div><div><h2>Wurfverteilung Feldspieler</h2><div class="standard-table">${shots}</div></div></div>
+      <div class="games-section"><h2>Spiele im Überblick</h2><div class="standard-table">${games}</div></div></section>
     </body></html>`;
   // Popup entsteht direkt als Folge des Klicks, um iOS-Safari-Popup-Sperren zu vermeiden.
   const w=window.open('','_blank');
