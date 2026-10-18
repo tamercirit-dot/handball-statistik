@@ -627,7 +627,17 @@ function exportSeasonAsPdf(){
   renderStats();
   const selector=$('seasonFilter');
   const filterLabel=selector.options[selector.selectedIndex]?.textContent||'Alle Spiele';
-  const stats=$('statsBody').querySelector('table')?.outerHTML||'<p>Keine Feldspieleraktionen erfasst.</p>';
+  // Nur für den PDF-Ausdruck: Werte ab 1 fett hervorheben, Nullen normal lassen.
+  const pdfStatsTable=$('statsBody').querySelector('table')?.cloneNode(true);
+  if(pdfStatsTable){
+    pdfStatsTable.querySelectorAll('tbody tr td').forEach(cell=>{
+      const value=cell.textContent.trim();
+      if(/^\d+$/.test(value)&&Number(value)>=1){
+        cell.classList.add(cell.cellIndex>=10?'pdf-value-negative':'pdf-value-positive');
+      }
+    });
+  }
+  const stats=pdfStatsTable?.outerHTML||'<p>Keine Feldspieleraktionen erfasst.</p>';
   const totals=$('totals').outerHTML;
   const shots=$('shotBreakdown').innerHTML;
   const goalieBoards=$('keeperBoards').outerHTML;
@@ -667,6 +677,8 @@ function exportSeasonAsPdf(){
     /* Ausschließlich Gruppenlinien: nach % und nach BL */
     .grouped-stats-v41 .stats-subheads th:nth-child(3),.grouped-stats-v41 tbody td:nth-child(4){border-right:2px solid #c0cbd5!important}
     .grouped-stats-v41 .stats-subheads th:nth-child(9),.grouped-stats-v41 tbody td:nth-child(10){border-right:2px solid #c0cbd5!important}
+    .grouped-stats-v41 tbody td.pdf-value-positive{font-weight:800!important}
+    .grouped-stats-v41 tbody td.pdf-value-negative{font-weight:800!important;color:#c51f35!important}
     .grouped-stats-v41 .player-meta{display:flex;align-items:center;gap:8px;white-space:nowrap}
     .grouped-stats-v41 .player-no{display:inline-flex;align-items:center;justify-content:center;min-width:24px;width:25px;height:25px;background:#fff!important;color:#17324d!important;border:1px solid #d7e0e9;border-radius:50%;font-weight:800;font-size:10px;padding:0 3px}
     .grouped-stats-v41 .player-label{display:flex;flex-direction:column;gap:2px;font-size:11px;font-weight:800;line-height:1.2}
