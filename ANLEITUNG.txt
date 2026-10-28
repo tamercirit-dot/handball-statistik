@@ -1,0 +1,1 @@
+Version 26 – PDF-Kopfzeile: nur TRAININGSPLAN statt ALPLA HC HARD · TRAININGSPLAN. Alle übrigen Funktionen wie in V25.
